@@ -6,18 +6,25 @@
 #include <iostream>
 #include <stdio.h>
 #include "FDM/Mesh.h"
+#include "FDM/Field.h"
+#include "FDM/Init.h"
 #include <map>
+#include <chrono>
 
-int main(){
+int main() {
+
+    auto start_time = std::chrono::steady_clock::now();
     Mesh mesh;
-    std::map<std::string,std::string> Config =  mesh.ReadConfiguration("../Config.txt");
+    Field fields;
+    Init init;
+    std::map<std::string, std::string> Config = mesh.ReadConfiguration("../Config.txt");
     mesh.GenerateMesh(Config);
-    for(auto point:mesh.points){
-        std::cout<<point<<std::endl;
-    }
+    init.MammalInit(mesh,fields);
 
+    auto end_time =  std::chrono::steady_clock::now();
+    std::chrono::duration<double> duration = end_time - start_time;
 
-
-
+    std::cout<<"Init Finished! Duration = "<<duration.count() <<" s"<<std::endl;
+    return 0;
 
 }

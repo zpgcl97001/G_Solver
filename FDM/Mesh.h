@@ -13,16 +13,32 @@
 //#include "Mesh.h"
 
 
-class Point;
-
 class Mesh {
 
 private:
     std::string file_name;
 
 public:
+
+    class Point {
+
+    public:
+        int id;
+        std::vector<double> location;
+        std::vector<int> adj;
+        bool isBC=false;
+        std::string type;
+        int I,J,K;
+    };
+
+
     std::string key,value;
     std::vector<Point> points;
+    std::map<std::string,std::string> keyValueMap;
+    int X_seed,Y_seed;
+    std::map<std::string,std::vector<Point>> BoundaryList;
+
+
 
     std::map<std::string,std::string> ReadConfiguration(std::string const&file_name)
     {
@@ -34,23 +50,25 @@ public:
         while (std::getline(Mesh_Config,line)) {
             //Treat as comment after //
             line = std::regex_replace(line, std::regex("//.*"), " ");
-            std::cout<<line<<std::endl;
             ss << line << std::endl;
         }
 
         while(ss>>key>>value){
             key_value_map.insert(std::pair<std::string,std::string>(key,value));
         };
+        this->keyValueMap = key_value_map;
         return key_value_map;
     }
 
-    void GenerateMesh(std::map<std::string,std::string> Config)
-    {
+    void GenerateMesh(std::map<std::string,std::string> Config) {
         //Get input
-        double X_length = std::stof(this->FindConfig(Config,"X_length"));
-        double Y_length = std::stof(this->FindConfig(Config,"Y_length"));
-        int X_seed = std::stoi(this->FindConfig("X_seed"));
-        int Y_seed = std::stoi(this->FindConfig("Y_seed"));
+        double X_length = std::stof(this->FindConfig(Config, "X_length"));
+        double Y_length = std::stof(this->FindConfig(Config, "Y_length"));
+
+        this->X_seed = std::stoi(this->FindConfig(Config,"X_seed"));
+        this->Y_seed = std::stoi(this->FindConfig(Config,"Y_seed"));
+
+
 
         //if mesh size equal
         double x_size = X_length/(X_seed - 1);
@@ -63,12 +81,18 @@ public:
             for(int j=0;j<X_seed;j++){
                 Point point;
                 point.id = ID;
+                point.I = j;
+                point.J = i;
+                point.K = 0;
                 point.location.push_back(x_size*j);
                 point.location.push_back(y_size*i);
                 this->points.push_back(point);
+                ID++;
             }
         }
 
+
+        //ReadBoundary:wall,inlet,outlet,only
 
     }
 
@@ -76,20 +100,28 @@ public:
         if(Config.find(key) != Config.end()){
             return Config.find(key)->second;
         }else{
-            std::cout<<"Config "+ key + "Not Found!"<<std::endl;
+            std::cout<<"Config "+ key + " Not Found!"<<std::endl;
             return "Nan";
         }
     }
 
-    class Point {
+    bool isConfig(std::map<std::string,std::string> Config,std::string key){
+        if(Config.find(key) != Config.end()){
+            return true;
+        }else{
+            return false;
+        }
+    }
 
-    public:
-        int id;
-        std::vector<double> location;
-        std::vector<int> adj;
-        bool isBC=false;
-        std::string type;
-    };
+    std::vector<int> IDtoIJK(int ID){
+        int I = ID%this->X_seed;
+        int J = ID/this->Y_seed;
+        int K = 0;
+        std::vector<int> IJK = {I,J,K};
+        return IJK;
+    }
+
+
 
 };
 

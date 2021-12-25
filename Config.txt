@@ -1,2 +1,8 @@
 X_length 20
 Y_length 8
+X_seed 2000
+Y_seed 800
+Ux 1
+Uy 0
+Uz 0
+P 0
