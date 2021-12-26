@@ -120,7 +120,9 @@ public:
         std::vector<int> IJK = {I,J,K};
         return IJK;
     }
-
+    int IJKtoID(int I,int J,int K=0){
+        return this->Y_seed*this->X_seed*K + this->X_seed*J + I;
+    }
 
 
 };

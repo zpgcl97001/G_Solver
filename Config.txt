@@ -1,8 +1,10 @@
 X_length 20
 Y_length 8
-X_seed 2000
-Y_seed 800
+X_seed 20
+Y_seed 8
 Ux 1
 Uy 0
 Uz 0
 P 0
+Pout 0
+totalTimesteps 1000

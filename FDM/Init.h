@@ -17,7 +17,7 @@ public:
 
     std::map<std::string,Field::field> FieldList;
 
-    void MammalInit(Mesh mesh,Field fields) {
+    void MammalInit(Mesh &mesh) {
         //Init Boundary
         //X = 0  Possunique inflow
         std::vector<Mesh::Point> inlet, outlet, wall, Bluntbody;
@@ -65,15 +65,32 @@ public:
 
         //Give Boundary condition
         //inlet
-        Field::field Ux = FieldList.find("Ux")->second;
+        Field::field & Ux = FieldList.find("Ux")->second;
+        Field::field & Uy = FieldList.find("Uy")->second;
+        Field::field & Uz = FieldList.find("Uz")->second;
+        Field::field & P  = FieldList.find("P")->second;
         for(auto point : mesh.BoundaryList.find("inlet")->second){
             //U
             double Um = std::stof(mesh.FindConfig(mesh.keyValueMap,"Ux"));
             double Y_length = std::stof(mesh.FindConfig(mesh.keyValueMap,"Y_length"));
-            Ux.field[point.I][point.J] =  Um *(1 - std::pow((2*point.J-mesh.Y_seed)/mesh.Y_seed,2));
-            //P
-
-
+            Ux.field[point.J][point.I] =  Um *(1 - std::pow((double(2*point.J-mesh.Y_seed))/double(mesh.Y_seed),2));
+            //P simplify zero Gradient
+                //pressure propogate from outlet
+            P.field[point.J][point.I] = P.field[point.J][point.I+1];
+        }
+        for(auto point : mesh.BoundaryList.find("outlet")->second){
+            //U extrapolation
+            Ux.field[point.J][point.I] = Ux.field[point.J][point.I-1];
+            //P = Pout
+            double Pout = std::stof(mesh.FindConfig(mesh.keyValueMap,"Pout"));
+            P.field[point.J][point.I] = Pout;
+        }
+        for(auto point : mesh.BoundaryList.find("wall")->second){
+            //U no-slip
+            Ux.field[point.J][point.I] = 0;
+            Uy.field[point.J][point.I] = 0;
+            Uz.field[point.J][point.I] = 0;
+            P.field[point.J][point.I] = point.J==0? P.field[point.J+1][point.I]:P.field[point.J-1][point.I];
         }
 
     }
