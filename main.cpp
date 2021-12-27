@@ -9,6 +9,7 @@
 #include "FDM/Field.h"
 #include "FDM/Init.h"
 #include "FDM/Post.h"
+#include "FDM/Solver.h"
 #include <map>
 #include <chrono>
 
@@ -19,9 +20,12 @@ int main() {
     Field fields;
     Init init;
     Post post;
+    ico icoSolver;
     std::map<std::string, std::string> Config = mesh.ReadConfiguration("../Config.txt");
     mesh.GenerateMesh(Config);
     init.MammalInit(mesh);
+
+
     post.ExportTecplot(init,mesh);
 
     auto end_time =  std::chrono::steady_clock::now();

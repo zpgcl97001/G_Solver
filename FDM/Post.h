@@ -43,7 +43,6 @@ public:
         for(int i = 0 ; i<mesh.Y_seed;i++){
             for(int j = 0;j<mesh.X_seed;j++){
                 outfile<<mesh.points[mesh.IJKtoID(j,i)].location[0]<<" "<<mesh.points[mesh.IJKtoID(j,i)].location[1]<<" ";
-                std::cout<<j<<","<<i<<","<<mesh.IJKtoID(j,i)<<std::endl;
                 for(auto field_pair : init.FieldList){
                     outfile<<field_pair.second.field[i][j]<<" ";
                 }
