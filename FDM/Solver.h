@@ -9,6 +9,7 @@
 #include "Init.h"
 #include "Field.h"
 #include <vector>
+#include <armadillo>
 class Solver {
 
 public:
@@ -19,7 +20,7 @@ public:
 class ico: public Solver{
 
 public:
-    double dt,mu;
+    double dt,mu,rho;
 
 
     void Conv(Init &init,Mesh &mesh,std::string var,std::string scheme = "first_order_up_wind"){
@@ -49,7 +50,7 @@ public:
                     int idw = mesh.IJKtoID(i-1,j);
                     int idn = mesh.IJKtoID(i,j+1);
                     int ids = mesh.IJKtoID(i,j-1);
-                    convx_field.field[j][i] = Ux.field[j][i] * (work_field.field[j][i+1] - work_field.field[j][i] )/(mesh.points[ide].location[0] - mesh.points[id].location[0] );
+                    convx_field.field[j][i] = Ux.field[j][i] * (work_field.field[j][i] - work_field.field[j][i-1] )/(mesh.points[ide].location[0] - mesh.points[id].location[0] );
                     convy_field.field[j][i] = Uy.field[j][i] * (work_field.field[j+1][i] - work_field.field[j-1][i] )/(mesh.points[idn].location[1] - mesh.points[ids].location[1] );
                 }
             }
@@ -170,11 +171,69 @@ public:
                 Vystar.field[j][i] = Uy[j][i] + dt * (-convUx[j][i] + mu * diffUx[j][i]);
             }
         }
-
     }
 
     void Possion(Init &init,Mesh &mesh){
 
+        Div(init,mesh,"Vxstar","Vystar");
+        std::vector<std::vector<double>> DivUstar = init.FieldList.find("divU")->second.field;
+        std::vector<std::vector<double>> RHS(mesh.Y_seed,std::vector<double> (mesh.X_seed));
+
+        for(int j=0;j<mesh.Y_seed;j++){
+            for(int i=0;i<mesh.X_seed;i++)
+            {
+                RHS[j][i] = DivUstar[j][i] * rho/dt;
+            }
+        }
+
+        std::vector<std::vector<double>> LaplaceP(mesh.Y_seed*mesh.X_seed,std::vector<double> (mesh.Y_seed*mesh.X_seed,0));
+
+        double X_length = std::stof(mesh.FindConfig(mesh.keyValueMap,"X_length"));
+        double Y_length = std::stof(mesh.FindConfig(mesh.keyValueMap,"Y_length"));
+        double X_seed = std::stof(mesh.FindConfig(mesh.keyValueMap,"X_seed"));
+        double Y_seed = std::stof(mesh.FindConfig(mesh.keyValueMap,"Y_seed"));
+        double dx = X_length/X_seed;
+        double dy = Y_length/Y_seed;
+
+        for(int id = 0; id<mesh.X_seed*mesh.Y_seed;id++){
+
+            std::vector<int> IJK = mesh.IDtoIJK(id);
+            if(IJK[0]==0){
+
+            }
+            else if(IJK[0] == mesh.X_seed - 1){
+
+            }else if(IJK[1] == 0){
+
+            }else if(IJK[1] == mesh.Y_seed - 1){
+
+            }else{
+                /*
+                 *                    Pn
+                 *         Pw    |    P    |   Pe
+                 *                    Ps
+                 */
+
+                int ide = mesh.IJKtoID(IJK[0]+1,IJK[1],0);
+                int idw = mesh.IJKtoID(IJK[0]-1,IJK[1],0);
+                int idn = mesh.IJKtoID(IJK[0],IJK[1]+1,0);
+                int ids = mesh.IJKtoID(IJK[0],IJK[1]-1,0);
+
+
+                LaplaceP[id][id] += -2/pow(dx,2)  -2/pow(dy,2);
+                LaplaceP[id][idw] += 1/pow(dx,2);
+                LaplaceP[id][ide] += 1/pow(dy,2);
+                LaplaceP[id][idn] += 1/pow(dy,2);
+                LaplaceP[id][ids] += 1/pow(dy,2);
+
+            }
+
+        }
+
+        arma::mat A = arma::conv_to<arma::mat>::from(LaplaceP);
+        arma::mat b = arma::conv_to<arma::mat>::from(RHS);
+        b = b.t();
+        arma::mat x = arma::solve(A,b);
 
 
 
