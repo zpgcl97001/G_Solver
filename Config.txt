@@ -1,7 +1,7 @@
 X_length 20
 Y_length 8
-X_seed 20
-Y_seed 8
+X_seed 200
+Y_seed 80
 Ux 1
 Uy 0
 Uz 0

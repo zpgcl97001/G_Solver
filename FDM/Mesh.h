@@ -115,7 +115,7 @@ public:
 
     std::vector<int> IDtoIJK(int ID){
         int I = ID%this->X_seed;
-        int J = ID/this->Y_seed;
+        int J = ID/this->X_seed;
         int K = 0;
         std::vector<int> IJK = {I,J,K};
         return IJK;

@@ -24,6 +24,18 @@ int main() {
     std::map<std::string, std::string> Config = mesh.ReadConfiguration("../Config.txt");
     mesh.GenerateMesh(Config);
     init.MammalInit(mesh);
+    projection proj;
+    //Time loops
+    for (int step=0;step<1000;step++) {
+        std::cout<<step<<std::endl;
+        proj.predictor(init, mesh);
+        proj.Possion(init, mesh);
+        proj.corrector(init, mesh);
+        if(step%10==0) {
+            post.ExportTecplot(init, mesh);
+        }
+    }
+//    proj.Possion(init,mesh);
 
 
     post.ExportTecplot(init,mesh);
